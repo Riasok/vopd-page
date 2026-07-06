@@ -1,0 +1,133 @@
+:root {
+  --bg: #f8f7f4;
+  --surface: #f5f4ef;
+  --ink: #28251f;
+  --muted: #6f6a60;
+  --link: #b3552d;
+  --rule: #e5e2d8;
+  --measure: 46rem;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--bg);
+  font-family: Charter, Georgia, Cambria, "Times New Roman", serif;
+  font-size: 18px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+main {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 6rem;
+}
+
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+p { margin: 0 0 1rem; }
+
+/* Header */
+header {
+  margin-bottom: 2.8rem;
+  padding-bottom: 1.6rem;
+  border-bottom: 1px solid var(--rule);
+}
+.eyebrow {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  margin: 0 0 0.7rem;
+}
+h1 {
+  font-size: 1.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin: 0 0 1rem;
+}
+.authors { margin: 0 0 0.25rem; }
+.me {
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.14em;
+}
+.affil { color: var(--muted); font-size: 0.95rem; margin: 0 0 1.1rem; }
+
+.links { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.45rem; }
+.links a { font-size: 0.98rem; }
+.links .sep { color: var(--muted); font-size: 0.9rem; }
+
+/* Sections */
+section { margin-bottom: 2.6rem; }
+h2 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin: 0 0 1.1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Callout / TL;DR */
+.callout {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--link);
+  border-radius: 4px;
+  padding: 1rem 1.2rem;
+  font-size: 0.98rem;
+}
+.callout strong { color: var(--ink); }
+
+/* Bullet points */
+ul.points { margin: 0; padding-left: 1.2rem; }
+ul.points li { margin-bottom: 0.6rem; }
+ul.points li:last-child { margin-bottom: 0; }
+
+/* Math blocks scroll on small screens */
+mjx-container { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+
+.note { font-size: 0.9rem; color: var(--muted); font-style: italic; }
+
+/* BibTeX */
+pre.bibtex {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.88em;
+}
+
+/* Footer */
+footer {
+  margin-top: 3rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+footer p { margin: 0; }
+
+@media (max-width: 540px) {
+  body { font-size: 17px; }
+  main { padding: 3rem 1.2rem 4rem; }
+  h1 { font-size: 1.6rem; }
+}

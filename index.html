@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KL for a KL: On-Policy Distillation with Control Variate Baseline</title>
+  <meta name="description" content="vOPD — On-Policy Distillation stabilized with a control-variate baseline: the closed-form per-token negative reverse-KL value function reduces gradient variance without bias.">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] } };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+<main>
+
+  <header>
+    <p class="eyebrow">On-Policy Distillation &middot; Variance Reduction</p>
+    <h1>KL for a KL: On-Policy Distillation with a Control Variate Baseline</h1>
+
+    <p class="authors">
+      <span class="me">Minjae Oh</span>,
+      Sangjun Song,
+      Gyubin Choi,
+      Yunho Choi,
+      Yohan Jo
+    </p>
+    <p class="affil">Human-Oriented Language Intelligence (HOLI) Lab &middot; Seoul National University</p>
+
+    <nav class="links">
+      <a href="https://arxiv.org/abs/2605.07865">arXiv</a>
+      <span class="sep" aria-hidden="true">&middot;</span>
+      <a href="https://arxiv.org/pdf/2605.07865">PDF</a>
+      <span class="sep" aria-hidden="true">&middot;</span>
+      <a href="https://github.com/Riasok/vopd">Code</a>
+      <span class="sep" aria-hidden="true">&middot;</span>
+      <a href="#bibtex">BibTeX</a>
+    </nav>
+  </header>
+
+  <section id="tldr">
+    <div class="callout">
+      <strong>TL;DR.</strong> On-policy distillation (OPD) is really a policy-gradient problem, and its
+      single-sample estimator is high-variance. <strong>vOPD</strong> subtracts a control-variate baseline
+      that happens to have a <em>closed form</em> &mdash; the per-token negative reverse-KL between student and
+      teacher &mdash; already available from the forward pass. It keeps the estimator unbiased and lightweight,
+      cuts gradient variance by 1&ndash;2 orders of magnitude, and matches full-vocabulary OPD at a fraction of the cost.
+    </div>
+  </section>
+
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <p>
+      On-Policy Distillation (OPD) has become a dominant post-training paradigm for reasoning with large
+      language models, training a student on its own rollouts against a teacher's dense token-level signal.
+      Yet OPD remains unstable: its single-sample Monte-Carlo estimator has high gradient variance,
+      especially at high-mismatch tokens where student and teacher disagree sharply. We recast OPD as
+      policy-gradient reinforcement learning and stabilize it with a classical tool &mdash; a control-variate
+      baseline. We show the OPD value function admits a closed form as the per-token <em>negative reverse
+      KL divergence</em> between student and teacher, computable directly from the already-available forward
+      pass with no extra critic or inference. The resulting method, <strong>vOPD</strong>, subtracts this
+      value as a detached baseline: the gradient stays unbiased while its variance drops sharply. A top-\(k\)
+      approximation of the baseline lowers cost further without hurting quality. Across math and science
+      reasoning benchmarks, vOPD consistently outperforms vanilla OPD and matches the most expensive
+      full-vocabulary baseline at substantially lower wall-clock cost.
+    </p>
+  </section>
+
+  <section id="method">
+    <h2>Method</h2>
+    <p>
+      Vanilla OPD minimizes the token-level reverse KL to the teacher with a single sampled continuation,
+      giving the policy-gradient estimator
+    </p>
+    <p>
+      \[ \nabla_\theta J_{\text{OPD}} = \mathbb{E}\!\left[\sum_t \big(\log \pi_T(y_t\mid c_t) - \log \pi_\theta(y_t\mid c_t)\big)\, \nabla_\theta \log \pi_\theta(y_t\mid c_t)\right]. \]
+    </p>
+    <p>
+      The bracketed per-token reward is heavy-tailed at high-mismatch tokens, which is the source of the
+      instability. Reading OPD as RL, the <em>value</em> of a context is the expected reward under the
+      student &mdash; and it collapses to a closed form:
+    </p>
+    <p>
+      \[ V^{\pi_\theta}(c_t) = -\,D_{\mathrm{KL}}\!\big(\pi_\theta(\cdot\mid c_t)\,\|\,\pi_T(\cdot\mid c_t)\big). \]
+    </p>
+    <p>
+      Subtracting it as a detached control-variate baseline turns the reward into an advantage and yields
+      <strong>vOPD</strong>:
+    </p>
+    <p>
+      \[ \nabla_\theta J_{\text{vOPD}} = \mathbb{E}\!\left[\sum_t \Big(r_t(c_t,y_t) + D_{\mathrm{KL}}\!\big(\pi_\theta(\cdot\mid c_t)\,\|\,\pi_T(\cdot\mid c_t)\big)\Big)\, \nabla_\theta \log \pi_\theta(y_t\mid c_t)\right]. \]
+    </p>
+    <ul class="points">
+      <li><strong>Unbiased &amp; free.</strong> The baseline is action-independent, so the gradient is unchanged in expectation; it is read off the same forward pass &mdash; no critic, no extra inference.</li>
+      <li><strong>Single-sample &amp; lightweight.</strong> vOPD keeps OPD's one-sample backward pass; the baseline adds only a forward-pass KL evaluation.</li>
+      <li><strong>Top-\(k\) baseline.</strong> Approximating the baseline KL over the student's top-\(k\) tokens (even \(k\!=\!5\)) preserves unbiasedness and nearly all of the gain, cutting cost further.</li>
+    </ul>
+  </section>
+
+  <section id="results">
+    <h2>Results</h2>
+    <p>
+      Across student/teacher pairs from the Qwen3 (1.7B, 4B) and Olmo-3 (7B) families, distilled on
+      DAPO-Math-17K and evaluated on math (MATH500, Minerva, AMC23, AIME24/25) and science
+      (SciKnowEval, GPQA-Diamond) reasoning:
+    </p>
+    <ul class="points">
+      <li><strong>Consistent gains over vanilla OPD</strong> on both math and science reasoning, with the largest improvements on MATH500.</li>
+      <li><strong>Matches full-vocabulary OPD</strong> &mdash; the most expensive baseline &mdash; while reducing wall-clock cost substantially (up to ~58%).</li>
+      <li><strong>Order-of-magnitude lower gradient variance:</strong> vOPD's gradient norms stay 1&ndash;2 orders of magnitude below vanilla OPD throughout training, despite higher final accuracy.</li>
+      <li><strong>Unbiasedness matters:</strong> the biased <code>OPD<sub>top-k</sub></code> barely helps, while <code>vOPD<sub>top-k</sub></code> retains the full gains.</li>
+    </ul>
+    <p class="note">Full quantitative tables and ablations are in the <a href="https://arxiv.org/abs/2605.07865">paper</a>.</p>
+  </section>
+
+  <section id="bibtex">
+    <h2>BibTeX</h2>
+    <pre class="bibtex">@article{oh2026klforakl,
+  title   = {KL for a KL: On-Policy Distillation with Control Variate Baseline},
+  author  = {Oh, Minjae and Song, Sangjun and Choi, Gyubin and Choi, Yunho and Jo, Yohan},
+  journal = {arXiv preprint arXiv:2605.07865},
+  year    = {2026}
+}</pre>
+  </section>
+
+  <footer>
+    <p>Seoul National University &middot; HOLI Lab &middot; 2026</p>
+  </footer>
+
+</main>
+</body>
+</html>
